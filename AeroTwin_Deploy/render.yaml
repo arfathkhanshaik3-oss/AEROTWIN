@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: aerotwin
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: AEROTWIN_SOURCE
+        value: sim

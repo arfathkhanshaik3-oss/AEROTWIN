@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AeroTwin — Live Engine Digital Twin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="lvl-nominal">
+<div id="vignette"></div>
+
+<header>
+  <div class="logo">AERO<b>TWIN</b></div>
+  <span class="badge" id="srcBadge">—</span>
+  <span class="badge"><span class="dot" id="linkDot"></span><span id="linkTxt">connecting…</span></span>
+  <span class="badge mono" id="ageBadge">—</span>
+  <span class="sp"></span>
+  <button class="hbtn" id="btnMode">SWITCH TO LIVE DEVICE</button>
+  <button class="hbtn" id="btnSound">ALARM SOUND: OFF</button>
+  <div id="alertbar"></div>
+</header>
+
+<main>
+<section style="position:relative;min-width:0">
+  <div id="nodata"><div id="nodataTxt">NO DATA</div></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="cmd">COMMAND</button>
+    <button class="tab" data-tab="fore">FORECAST</button>
+    <button class="tab" data-tab="wi">WHAT-IF</button>
+    <button class="tab" data-tab="diag">DIAGNOSTICS</button>
+    <button class="tab" data-tab="conn">CONNECT DRONE</button>
+  </div>
+
+  <!-- ============ COMMAND ============ -->
+  <div class="view on" id="v-cmd">
+    <div class="panel">
+      <div class="hero">
+        <div class="gauge-wrap">
+          <canvas class="gauge" id="gHealth" width="760" height="700"></canvas>
+          <div class="status-pill st-nominal" id="stPill">NOMINAL</div>
+        </div>
+        <div>
+          <div class="rec" id="recBox">
+            <div class="note mono" style="letter-spacing:.14em">RECOMMENDED ACTION</div>
+            <div class="big" id="recAction">—</div>
+            <div class="note" id="recReason">Collecting data…</div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px"><span class="note mono">CONFIDENCE</span><div class="bar" style="flex:1"><i id="recConfBar" style="width:0"></i></div><span class="mono" id="recConf">—</span></div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn" data-act="continue">CONTINUE</button>
+              <button class="btn" data-act="modify">MODIFY MISSION</button>
+              <button class="btn dng" data-act="return">RETURN / DIVERT</button>
+            </div>
+            <div class="note" id="advNote" style="margin-top:6px"></div>
+          </div>
+          <div class="kv" style="margin-top:12px">
+            <span>Fused health</span><span id="kFused">—</span>
+            <span>ML health model</span><span id="kMl">—</span>
+            <span>Digital-twin health</span><span id="kTw">—</span>
+            <span>ML forecast +120 s</span><span id="kF">—</span>
+            <span>Anomaly index</span><span id="kA">—</span>
+            <span>Assessment confidence</span><span id="kC">—</span>
+          </div>
+          <ul class="reasons" id="reasons"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="grid4" style="margin-top:14px">
+      <div class="dial" id="dl-temp"><span class="st"></span><canvas width="360" height="340"></canvas><div class="lab">CYLINDER HEAD TEMP</div></div>
+      <div class="dial" id="dl-rpm"><span class="st"></span><canvas width="360" height="340"></canvas><div class="lab">ENGINE RPM</div></div>
+      <div class="dial" id="dl-vib"><span class="st"></span><canvas width="360" height="340"></canvas><div class="lab">VIBRATION</div></div>
+      <div class="dial" id="dl-press"><span class="st"></span><canvas width="360" height="340"></canvas><div class="lab">OIL PRESSURE</div></div>
+    </div>
+    <div class="panel" style="margin-top:14px"><h3>Health history</h3><canvas class="chart" id="cSpark" style="height:170px"></canvas></div>
+  </div>
+
+  <!-- ============ FORECAST ============ -->
+  <div class="view" id="v-fore">
+    <div class="panel">
+      <h3>Health trajectory &amp; projected futures (digital-twin Monte-Carlo)</h3>
+      <canvas class="chart" id="cFore" style="height:420px"></canvas>
+      <div class="grid4" style="margin-top:12px">
+        <div class="card"><div class="note mono">TIME TO DEGRADED (&lt;80)</div><div class="num" id="etaDeg">—</div></div>
+        <div class="card"><div class="note mono">TIME TO CRITICAL (&lt;50)</div><div class="num" id="etaCrit">—</div></div>
+        <div class="card"><div class="note mono">TIME TO FAILURE (&lt;35)</div><div class="num" id="etaFail">—</div></div>
+        <div class="card"><div class="note mono">ML FORECAST +120 s</div><div class="num" id="mlf">—</div></div>
+      </div>
+      <p class="note">Solid cyan = measured health. Dashed lines = twin projections if the aircraft continues, modifies the mission, or returns. Shaded band = 10th–90th percentile for "continue".</p>
+    </div>
+  </div>
+
+  <!-- ============ WHAT-IF ============ -->
+  <div class="view" id="v-wi">
+    <div class="panel">
+      <h3>What-if mission simulator</h3>
+      <div class="grid3" id="wiCards"></div>
+      <div class="rec" id="wiRec" style="margin-top:14px"><div class="note mono">DECISION SUPPORT</div><div class="big" id="wiAct">—</div><div class="note" id="wiWhy"></div></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <span class="note mono">MISSION</span>
+        <label class="note">remaining <input id="inMission" type="number" min="30" step="30" value="900" style="width:80px;background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px"> s</label>
+        <label class="note">return time <input id="inReturn" type="number" min="30" step="30" value="240" style="width:80px;background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px"> s</label>
+        <button class="btn" id="btnMission">APPLY</button>
+      </div>
+      <p class="note">Survival = probability that engine health stays above the failure threshold (35) for the whole exposure. Utility = survival × (aircraft value + mission value). The system is advisory: it never commands the aircraft.</p>
+    </div>
+  </div>
+
+  <!-- ============ DIAGNOSTICS ============ -->
+  <div class="view" id="v-diag">
+    <div class="grid2">
+      <div class="panel"><h3>Sensor trust (sensor fault vs engine fault)</h3>
+        <table><thead><tr><th>Sensor</th><th class="r">Raw</th><th class="r">Used</th><th class="r">z-score</th><th class="r">Trust</th><th>State</th></tr></thead><tbody id="tblSensors"></tbody></table>
+        <div style="margin-top:12px" id="probs"></div>
+      </div>
+      <div class="panel"><h3>Digital-twin state estimate</h3>
+        <div class="kv" id="twinKv"></div>
+        <h3 style="margin-top:16px">Model quality (held-out, simulated)</h3>
+        <pre id="metrics">loading…</pre>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px"><h3>Event log</h3><table><thead><tr><th>Time</th><th>Event</th><th>Detail</th></tr></thead><tbody id="events"></tbody></table>
+      <p class="note"><a style="color:var(--cyan)" href="/api/export.csv">Download full telemetry log (CSV)</a></p></div>
+  </div>
+
+  <!-- ============ CONNECT ============ -->
+  <div class="view" id="v-conn">
+    <div class="panel">
+      <h3>Connect your drone</h3>
+      <div class="grid2">
+        <div class="card"><h4>Connection status</h4><div class="kv" id="connKv"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn pri" id="btnLive">USE LIVE DEVICE</button><button class="btn" id="btnSim">USE SIMULATOR</button></div></div>
+        <div class="card"><h4>Fastest way: HTTP (ESP32 / Raspberry Pi / ground station)</h4>
+<pre id="curl"></pre><p class="note">Send 1 sample per second (higher rates are averaged to 1 Hz). Channels: <b>temp</b> (°C), <b>rpm</b>, <b>vib</b> (g), <b>press</b> (bar); optional <b>throttle</b> (0–1), <b>ambient</b> (°C). Missing values may be omitted or null.</p></div>
+      </div>
+      <div class="grid3" style="margin-top:14px">
+        <div class="card"><h4>WebSocket</h4><pre id="wsurl"></pre><p class="note">Persistent connection, same JSON.</p></div>
+        <div class="card"><h4>Serial (USB / telemetry radio)</h4><pre>AEROTWIN_SOURCE=live
+AEROTWIN_LIVE_INPUT=serial
+AEROTWIN_SERIAL_PORT=COM5</pre><p class="note">Device prints one JSON line or CSV <span class="mono">temp,rpm,vib,press</span> per sample.</p></div>
+        <div class="card"><h4>MAVLink (ArduPilot)</h4><pre>AEROTWIN_SOURCE=live
+AEROTWIN_LIVE_INPUT=mavlink
+AEROTWIN_MAVLINK=udp:127.0.0.1:14550</pre><p class="note">Reads EFI_STATUS + VIBRATION. See README for channel mapping.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<aside>
+  <div class="panel lvl-nominal" id="dronePanel">
+    <div id="droneBar">
+      <span class="mono" style="font-size:11px;letter-spacing:.14em;color:var(--cyan);margin-right:auto">LIVE AIRFRAME TWIN</span>
+      <button class="hbtn on" id="bMale">MALE UAV</button><button class="hbtn" id="bQuad">QUAD</button>
+      <button class="hbtn" id="bWire">WIRE</button><button class="hbtn on" id="bAuto">ORBIT</button>
+    </div>
+    <div id="droneBox"><div id="droneState"></div><div id="droneHud"></div></div>
+  </div>
+  <div class="panel harness" id="harness">
+    <h3>Simulator test harness <span class="note">(hidden in live mode)</span></h3>
+    <div class="note">Inject engine faults to see detection, forecasting and the airframe react.</div>
+    <div class="row"><select id="ttf"><option value="60">fault matures in 60 s</option><option value="120" selected>120 s</option><option value="240">240 s</option><option value="600">600 s</option></select></div>
+    <div class="row">
+      <button class="btn dng" data-fault="cool">COOLING LOSS</button>
+      <button class="btn dng" data-fault="bear">BEARING WEAR</button>
+      <button class="btn dng" data-fault="leak">OIL LEAK</button>
+    </div>
+    <div class="note" style="margin-top:8px">Sensor faults (engine stays healthy → must NOT raise an engine alarm)</div>
+    <div class="row">
+      <select id="sfCh"><option value="temp">temp</option><option value="rpm">rpm</option><option value="vib" selected>vib</option><option value="press">press</option></select>
+      <select id="sfMode"><option value="stuck" selected>stuck</option><option value="drift">drift</option><option value="bias">bias</option><option value="dropout">dropout</option><option value="spike">spike</option></select>
+      <button class="btn" id="btnSF">INJECT SENSOR FAULT</button>
+    </div>
+    <div class="row"><span class="note mono">LOAD</span><input type="range" id="load" min="0.15" max="0.9" step="0.01" value="0.4" style="flex:1"><span class="mono" id="loadV">auto</span><button class="btn" id="btnLoadAuto">AUTO</button></div>
+    <div class="row"><span class="note mono">SPEED</span>
+      <button class="btn" data-speed="1">1×</button><button class="btn" data-speed="2">2×</button><button class="btn" data-speed="5">5×</button><button class="btn" data-speed="10">10×</button></div>
+    <div class="row"><button class="btn" id="btnClear">CLEAR FAULTS</button><button class="btn pri" id="btnReset">RESET SYSTEM</button></div>
+  </div>
+</aside>
+</main>
+
+<script src="vendor/three.min.js"></script>
+<script src="drone.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

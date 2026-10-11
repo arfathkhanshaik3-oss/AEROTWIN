@@ -1,0 +1,13 @@
+services:
+  aerotwin:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      AEROTWIN_SOURCE: "sim"              # sim | live
+      AEROTWIN_LIVE_INPUT: "http"         # http | serial | mavlink
+      AEROTWIN_API_KEY: "change-me"       # devices must send X-API-Key; remove to disable
+      # AEROTWIN_SERIAL_PORT: /dev/ttyUSB0
+      # AEROTWIN_MAVLINK: udp:0.0.0.0:14550
+    volumes: ["./data:/app/data", "./models:/app/models"]
+    # devices: ["/dev/ttyUSB0:/dev/ttyUSB0"]   # for serial input
+    restart: unless-stopped

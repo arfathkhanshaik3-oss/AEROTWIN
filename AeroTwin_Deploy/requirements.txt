@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+numpy>=1.26
+scikit-learn>=1.4
+joblib>=1.3
+pydantic>=2.5
+pyserial>=3.5        # serial telemetry input (optional)
+pymavlink>=2.4       # MAVLink / ArduPilot input (optional)
+httpx>=0.26          # tests
+pytest>=8.0          # tests

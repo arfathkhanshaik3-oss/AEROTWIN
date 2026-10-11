@@ -1,0 +1,8 @@
+# pinned to the exact versions the shipped models were trained with
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+numpy==2.4.4
+scikit-learn==1.8.0
+scipy==1.17.1
+joblib==1.5.3
+pydantic==2.14.0
